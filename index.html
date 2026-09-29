@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Low Stock Alerts — Know before you run out | Teuxore</title>
+<meta name="description" content="A daily email listing every Shopify product at or below your stock threshold, so you can restock before you sell out.">
+<meta property="og:title" content="Low Stock Alerts for Shopify">
+<meta property="og:description" content="Get a daily email listing every product below your stock threshold. Restock before you sell out.">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --ink: #101418;
+    --muted: #5c6670;
+    --line: #e3e7ea;
+    --bg: #ffffff;
+    --soft: #f6f8f9;
+    --accent: #1f6feb;
+    --warn: #b45309;
+    --warn-bg: #fef3c7;
+    --crit: #b91c1c;
+    --crit-bg: #fee2e2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+
+  header { padding: 28px 0; border-bottom: 1px solid var(--line); }
+  .brandrow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand svg { display: block; }
+  .brand small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  .navlink { color: var(--muted); text-decoration: none; font-size: 14px; }
+  .navlink:hover { color: var(--ink); }
+
+  .hero { padding: 72px 0 56px; text-align: center; }
+  .hero h1 { font-size: 44px; line-height: 1.15; letter-spacing: -0.025em; margin: 0 0 18px; }
+  .hero p.lede { font-size: 19px; color: var(--muted); max-width: 620px; margin: 0 auto 32px; }
+  .cta { display: inline-block; background: var(--ink); color: #fff; text-decoration: none; padding: 13px 26px; border-radius: 8px; font-weight: 500; }
+  .cta:hover { background: #2b3138; }
+  .cta-note { font-size: 14px; color: var(--muted); margin-top: 14px; }
+
+  .preview { margin: 8px 0 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; text-align: left; box-shadow: 0 1px 2px rgba(16,20,24,.04); }
+  .preview .bar { background: var(--soft); border-bottom: 1px solid var(--line); padding: 12px 18px; font-size: 13px; color: var(--muted); }
+  .preview .bar strong { color: var(--ink); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  td { padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  td.qty { text-align: right; }
+  .pill { display: inline-block; min-width: 30px; text-align: center; padding: 2px 9px; border-radius: 999px; font-weight: 600; font-size: 13px; }
+  .pill.crit { background: var(--crit-bg); color: var(--crit); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 32px; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .step .num { width: 28px; height: 28px; border-radius: 999px; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .step h3 { font-size: 16px; margin: 0 0 6px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  .feats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .feat { border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
+  .feat h3 { font-size: 15px; margin: 0 0 6px; }
+  .feat p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  .price { border: 1px solid var(--line); border-radius: 12px; padding: 32px; text-align: center; background: var(--soft); }
+  .price .amount { font-size: 40px; font-weight: 600; letter-spacing: -0.03em; }
+  .price .per { color: var(--muted); font-size: 16px; font-weight: 400; }
+  .price ul { list-style: none; padding: 0; margin: 20px auto 0; max-width: 340px; text-align: left; }
+  .price li { padding: 7px 0 7px 26px; position: relative; color: var(--muted); }
+  .price li::before { content: "✓"; position: absolute; left: 0; color: var(--ink); font-weight: 600; }
+
+  details { border-bottom: 1px solid var(--line); padding: 16px 0; }
+  details summary { cursor: pointer; font-weight: 500; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "+"; float: right; color: var(--muted); font-weight: 400; }
+  details[open] summary::after { content: "−"; }
+  details p { color: var(--muted); margin: 10px 0 0; }
+
+  footer { border-top: 1px solid var(--line); padding: 32px 0 56px; color: var(--muted); font-size: 14px; }
+  footer a { color: var(--muted); }
+  .footrow { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  @media (max-width: 680px) {
+    .hero { padding: 48px 0 40px; }
+    .hero h1 { font-size: 32px; }
+    .hero p.lede { font-size: 17px; }
+    .steps, .feats { grid-template-columns: 1fr; }
+    th:nth-child(2), td:nth-child(2) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brandrow">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#101418"/>
+        <rect x="8" y="17" width="4" height="8" rx="1.2" fill="#ffffff"/>
+        <rect x="14" y="13" width="4" height="12" rx="1.2" fill="#ffffff" opacity=".65"/>
+        <rect x="20" y="9" width="4" height="16" rx="1.2" fill="#ffffff" opacity=".35"/>
+      </svg>
+      <span>Low Stock Alerts<small>by Teuxore</small></span>
+    </div>
+    <a class="navlink" href="mailto:lowstockalerts.support@gmail.com">Support</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Know before you run out</h1>
+    <p class="lede">A daily email listing every product at or below your stock threshold, so you can restock before you sell out.</p>
+    <a class="cta" href="#pricing">See pricing</a>
+    <p class="cta-note">For Shopify stores · 7-day free trial</p>
+  </div>
+
+  <div class="preview">
+    <div class="bar"><strong>14 variants need attention</strong> — alerts@lowstockalerts.com</div>
+    <table>
+      <thead>
+        <tr><th>Product</th><th>Variant</th><th class="qty">Qty</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Merino Crew Neck</td><td>Charcoal / M</td><td class="qty"><span class="pill crit">0</span></td></tr>
+        <tr><td>Merino Crew Neck</td><td>Charcoal / L</td><td class="qty"><span class="pill crit">1</span></td></tr>
+        <tr><td>Canvas Weekender</td><td>Olive</td><td class="qty"><span class="pill crit">2</span></td></tr>
+        <tr><td>Leather Card Holder</td><td>Tan</td><td class="qty"><span class="pill warn">6</span></td></tr>
+        <tr><td>Wool Beanie</td><td>Navy</td><td class="qty"><span class="pill warn">8</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="sub">Set it once. The rest happens without you.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>Set your threshold</h3>
+        <p>Choose the stock level that counts as low for your store, and the address alerts should go to.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>We check every day</h3>
+        <p>Every product and variant in your store is checked once a day against that threshold.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>You get one email</h3>
+        <p>A single summary of what's running low, sorted with the most urgent items first.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Built to stay out of your way</h2>
+    <p class="sub">No dashboards to check, no notifications to dismiss.</p>
+    <div class="feats">
+      <div class="feat">
+        <h3>One email a day, never a flood</h3>
+        <p>Everything running low arrives in a single summary rather than an alert per product.</p>
+      </div>
+      <div class="feat">
+        <h3>No repeat alerts</h3>
+        <p>A variant you've already been told about won't be emailed again within 24 hours.</p>
+      </div>
+      <div class="feat">
+        <h3>Sorted by urgency</h3>
+        <p>Items closest to zero appear first, so the list is useful even when it's long.</p>
+      </div>
+      <div class="feat">
+        <h3>Untracked products ignored</h3>
+        <p>Anything without inventory tracking is skipped, so gift cards and services stay out.</p>
+      </div>
+      <div class="feat">
+        <h3>Works with every variant</h3>
+        <p>Each size and colour is checked separately, not just the parent product.</p>
+      </div>
+      <div class="feat">
+        <h3>Read-only access</h3>
+        <p>The app only requests permission to view products. It never changes anything in your store.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <h2>Pricing</h2>
+    <p class="sub">One plan. Billed through Shopify, on your regular invoice.</p>
+    <div class="price">
+      <div class="amount">$7.99 <span class="per">/ month</span></div>
+      <ul>
+        <li>Daily low-stock email alerts</li>
+        <li>Your own stock threshold</li>
+        <li>Low-stock dashboard inside Shopify</li>
+        <li>Unlimited products and variants</li>
+        <li>7-day free trial</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Questions</h2>
+    <p class="sub"></p>
+    <details>
+      <summary>When does the daily email arrive?</summary>
+      <p>Once a day, at the same time each day. If nothing is below your threshold, no email is sent.</p>
+    </details>
+    <details>
+      <summary>Can I send alerts to someone else?</summary>
+      <p>Yes. The alert address is whatever you enter in Settings, so it can go to a warehouse manager or a shared inbox rather than you.</p>
+    </details>
+    <details>
+      <summary>Does it work with multiple locations?</summary>
+      <p>Alerts are based on the total stock available for each variant across your store.</p>
+    </details>
+    <details>
+      <summary>What data do you store?</summary>
+      <p>Your store domain, your threshold, your alert email address, and a short record of which variants were recently alerted. No customer or order data is ever accessed. Everything is deleted when you uninstall.</p>
+    </details>
+    <details>
+      <summary>How do I cancel?</summary>
+      <p>Uninstall the app from your Shopify admin. Billing stops immediately and your data is deleted.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footrow">
+    <div>© 2026 Teuxore</div>
+    <div>
+      <a href="mailto:lowstockalerts.support@gmail.com">lowstockalerts.support@gmail.com</a>
+      &nbsp;·&nbsp;
+      <a href="https://raj-pathak-lm10.github.io/lowstock-privacy/">Privacy policy</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
